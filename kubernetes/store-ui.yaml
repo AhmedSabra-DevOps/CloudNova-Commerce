@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: store-ui
-          image: ahmedsabra/cloudnova-store-ui:latest
+          image: ahmedsabra/cloudnova-store-ui:v4
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 80

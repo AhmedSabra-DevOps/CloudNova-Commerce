@@ -205,7 +205,7 @@ export default function PrimarySearchAppBar() {
       <Box sx={{ width: 270 }} role="presentation">
         <Box sx={{ p: 2 }}>
           <Typography variant="h6" fontWeight="bold">
-            🛍️ e-commerce store
+            CloudNova Commerce
           </Typography>
         </Box>
 
@@ -284,7 +284,7 @@ export default function PrimarySearchAppBar() {
             }}
           >
             <img src="logo.png" width="32" height="32" alt="logo" />
-            &nbsp;e-commerce store
+            CloudNova Commerce
           </Link>
 
           <Box sx={{ flexGrow: 1 }} />
