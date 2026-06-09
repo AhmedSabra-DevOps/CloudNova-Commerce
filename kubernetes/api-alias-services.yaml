@@ -1,0 +1,51 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: products-api
+  namespace: cloudnova
+spec:
+  type: ClusterIP
+  selector:
+    app: products-service
+  ports:
+    - port: 5000
+      targetPort: 5000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cart-api
+  namespace: cloudnova
+spec:
+  type: ClusterIP
+  selector:
+    app: cart-service
+  ports:
+    - port: 8080
+      targetPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: users-api
+  namespace: cloudnova
+spec:
+  type: ClusterIP
+  selector:
+    app: users-service
+  ports:
+    - port: 9090
+      targetPort: 9090
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: search-api
+  namespace: cloudnova
+spec:
+  type: ClusterIP
+  selector:
+    app: search-service
+  ports:
+    - port: 4000
+      targetPort: 4000

@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: search-deployment
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: search-deployment
+  template:
+    metadata:
+      labels:
+        app: search-deployment
+    spec:
+      containers:
+      - name: search
+        image: 429104603739.dkr.ecr.us-east-2.amazonaws.com/search:latest
+        imagePullPolicy: Always
+        env:
+        - name: ELASTIC_URL
+          valueFrom:
+            configMapKeyRef:
+              name: search-configmap
+              key: ELASTIC_URL
+        ports:
+        - name: http
+          containerPort: 4000
+          protocol: TCP

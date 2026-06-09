@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: users-deployment
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: users-deployment
+  template:
+    metadata:
+      labels:
+        app: users-deployment
+    spec:
+      containers:
+      - name: users
+        image: 429104603739.dkr.ecr.us-east-2.amazonaws.com/users:latest
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 3000
+          protocol: TCP

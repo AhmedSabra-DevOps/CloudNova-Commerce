@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: db-cart
+  namespace: cloudnova
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: db-cart
+  template:
+    metadata:
+      labels:
+        app: db-cart
+    spec:
+      containers:
+        - name: redis
+          image: redis:alpine
+          ports:
+            - containerPort: 6379
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: db-cart
+  namespace: cloudnova
+spec:
+  type: ClusterIP
+  selector:
+    app: db-cart
+  ports:
+    - port: 6379
+      targetPort: 6379

@@ -1,0 +1,24 @@
+node_modules/
+dist/
+.env
+*.log
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+Pipfile.lock
+
+# Java / Gradle
+.gradle/
+build/
+target/
+
+# OS / IDE
+.DS_Store
+.vscode/
+.idea/
+
+# Docker / local
+*.tar.vscode
+.DS_Store*.tar

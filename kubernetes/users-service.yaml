@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: users-service
+  namespace: cloudnova
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: users-service
+  template:
+    metadata:
+      labels:
+        app: users-service
+    spec:
+      containers:
+        - name: users-service
+          image: ahmedsabra/cloudnova-users-api:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 9090
+          env:
+            - name: DATABASE_URL
+              value: "postgresql://postgres:postgres@db-users:5432/users"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: users-service
+  namespace: cloudnova
+spec:
+  type: ClusterIP
+  selector:
+    app: users-service
+  ports:
+    - port: 9090
+      targetPort: 9090

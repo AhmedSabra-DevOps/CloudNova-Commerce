@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: db-users
+  namespace: cloudnova
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: db-users
+  template:
+    metadata:
+      labels:
+        app: db-users
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15-alpine
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              value: "postgres"
+            - name: POSTGRES_PASSWORD
+              value: "postgres"
+            - name: POSTGRES_DB
+              value: "users"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: db-users
+  namespace: cloudnova
+spec:
+  type: ClusterIP
+  selector:
+    app: db-users
+  ports:
+    - port: 5432
+      targetPort: 5432

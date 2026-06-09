@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: products-service
+  namespace: cloudnova
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: products-service
+  template:
+    metadata:
+      labels:
+        app: products-service
+    spec:
+      containers:
+        - name: products-service
+          image: ahmedsabra/cloudnova-products-api:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5000
+          env:
+            - name: MONGO_URL
+              value: "mongodb://db-products:27017/products"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: products-service
+  namespace: cloudnova
+spec:
+  type: ClusterIP
+  selector:
+    app: products-service
+  ports:
+    - port: 5000
+      targetPort: 5000
