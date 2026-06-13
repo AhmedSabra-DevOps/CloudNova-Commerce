@@ -56,18 +56,21 @@ stages {
     }
 
     stage('Build Store UI Static Files') {
-        steps {
+    steps {
+        timeout(time: 15, unit: 'MINUTES') {
             echo 'Building React Store UI static files...'
             sh '''
-                docker run --rm \
-                  -v $HOST_WORKSPACE:/workspace \
-                  -w /workspace/store-ui \
-                  node:18-alpine \
-                  sh -c "npm install && npm run build"
+            docker run --rm \
+              -e CI=false \
+              -e NODE_OPTIONS="--max_old_space_size=2048" \
+              -v "$WORKSPACE:/workspace" \
+              -w /workspace/store-ui \
+              node:18-alpine \
+              sh -c "rm -rf node_modules build && npm ci --no-audit --no-fund --progress=false && npm run build"
             '''
         }
     }
-
+}
 
         stage('Build Cart Service JAR') {
             steps {
