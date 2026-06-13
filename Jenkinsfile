@@ -68,6 +68,19 @@ stages {
         }
     }
 
+
+        stage('Build Cart Service JAR') {
+            steps {
+                echo 'Building Cart Service JAR...'
+                sh '''                    docker run --rm \
+                      -v $HOST_WORKSPACE:/workspace \
+                      -w /workspace/cart-cna-microservice \
+                      gradle:8.7-jdk17-alpine \
+                      sh -c 'gradle clean build -x test && mkdir -p build/libs && JAR_FILE=$(ls build/libs/*.jar | grep -v plain | head -n 1) && cp "$JAR_FILE" build/libs/cart-1.0.0.jar && ls -lah build/libs'
+                '''
+            }
+        }
+
     stage('Build Docker Images') {
         steps {
             echo 'Building Docker images...'
