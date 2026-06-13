@@ -57,10 +57,15 @@ stages {
 
     stage('Build Store UI Static Files') {
     steps {
-        echo 'Skipping Store UI build because build folder already exists from previous successful run.'
+        echo 'Skipping Store UI build temporarily to continue pipeline.'
         sh '''
-        ls -lah /home/u1/jenkins_home/workspace/cloudnova-commerce-pipeline/store-ui
-        ls -lah /home/u1/jenkins_home/workspace/cloudnova-commerce-pipeline/store-ui/build || true
+        echo "Current Jenkins workspace:"
+        pwd
+        echo "Workspace content:"
+        ls -lah
+        echo "Checking store-ui folder if available:"
+        ls -lah store-ui || true
+        ls -lah store-ui/build || true
         '''
     }
 }
