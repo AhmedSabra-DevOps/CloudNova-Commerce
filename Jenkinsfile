@@ -63,7 +63,7 @@ stages {
             docker run --rm \
               -e CI=false \
               -e NODE_OPTIONS="--max_old_space_size=2048" \
-              -v "$WORKSPACE:/workspace" \
+              -v "/home/u1/jenkins_home/workspace/cloudnova-commerce-pipeline:/workspace" \
               -w /workspace/store-ui \
               node:18-alpine \
               sh -c "rm -rf node_modules build && npm ci --no-audit --no-fund --progress=false && npm run build"
