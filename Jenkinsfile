@@ -4,7 +4,16 @@ pipeline {
     environment {
         DOCKERHUB_USER = 'ahmedsabra'
         K8S_NAMESPACE = 'cloudnova'
-        KUBECTL = 'docker run --rm --network host --user root -e KUBECONFIG=/root/.kube/config -v $HOME/.kube:/root/.kube -v $HOME/.minikube:$HOME/.minikube -v $PWD:/workspace -w /workspace bitnami/kubectl:latest'
+
+        STORE_UI_IMAGE = 'ahmedsabra/cloudnova-store-ui'
+        PRODUCTS_IMAGE = 'ahmedsabra/cloudnova-products-api'
+        USERS_IMAGE = 'ahmedsabra/cloudnova-users-api'
+        CART_IMAGE = 'ahmedsabra/cloudnova-cart-api'
+        SEARCH_IMAGE = 'ahmedsabra/cloudnova-search-api'
+
+        IMAGE_TAG = "build-${BUILD_NUMBER}"
+
+        KUBECTL = 'docker run --rm --network host --user root -e KUBECONFIG=/root/.kube/config -v /home/u1/jenkins_home/.kube:/root/.kube -v /home/u1/jenkins_home/.minikube:/root/.minikube -v /home/u1/jenkins_home/workspace/cloudnova-commerce-pipeline:/workspace -w /workspace bitnami/kubectl:latest'
     }
 
     stages {
@@ -15,15 +24,65 @@ pipeline {
             }
         }
 
+        stage('Workspace Info') {
+            steps {
+                sh '''
+                    echo "Current workspace:"
+                    pwd
+                    echo "Project files:"
+                    ls -la
+                '''
+            }
+        }
+
+        stage('Trivy File System Scan') {
+            steps {
+                echo 'Running Trivy filesystem scan...'
+                sh '''
+                    docker run --rm \
+                      -v $WORKSPACE:/workspace \
+                      aquasec/trivy:latest fs \
+                      --severity HIGH,CRITICAL \
+                      --exit-code 0 \
+                      /workspace
+                '''
+            }
+        }
+
+stage('Build Store UI Static Files') {
+    steps {
+        echo 'Building React Store UI static files...'
+        sh '''
+            docker run --rm \
+              -v $WORKSPACE:/workspace \
+              -w /workspace/store-ui \
+              node:18-alpine \
+              sh -c "npm install && npm run build"
+        '''
+    }
+}
         stage('Build Docker Images') {
             steps {
                 echo 'Building Docker images...'
                 sh '''
-                    docker build -t $DOCKERHUB_USER/cloudnova-store-ui:latest ./store-ui
-                    docker build -t $DOCKERHUB_USER/cloudnova-products-api:latest ./products-cna-microservice
-                    docker build -t $DOCKERHUB_USER/cloudnova-users-api:latest ./users-cna-microservice
-                    docker build -t $DOCKERHUB_USER/cloudnova-cart-api:latest ./cart-cna-microservice
-                    docker build -t $DOCKERHUB_USER/cloudnova-search-api:latest ./search-cna-microservice
+                    docker build -t $STORE_UI_IMAGE:$IMAGE_TAG -t $STORE_UI_IMAGE:latest ./store-ui
+                    docker build -t $PRODUCTS_IMAGE:$IMAGE_TAG -t $PRODUCTS_IMAGE:latest ./products-cna-microservice
+                    docker build -t $USERS_IMAGE:$IMAGE_TAG -t $USERS_IMAGE:latest ./users-cna-microservice
+                    docker build -t $CART_IMAGE:$IMAGE_TAG -t $CART_IMAGE:latest ./cart-cna-microservice
+                    docker build -t $SEARCH_IMAGE:$IMAGE_TAG -t $SEARCH_IMAGE:latest ./search-cna-microservice
+                '''
+            }
+        }
+
+        stage('Trivy Image Scan') {
+            steps {
+                echo 'Scanning Docker images...'
+                sh '''
+                    docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:latest image --severity HIGH,CRITICAL --exit-code 0 $STORE_UI_IMAGE:$IMAGE_TAG
+                    docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:latest image --severity HIGH,CRITICAL --exit-code 0 $PRODUCTS_IMAGE:$IMAGE_TAG
+                    docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:latest image --severity HIGH,CRITICAL --exit-code 0 $USERS_IMAGE:$IMAGE_TAG
+                    docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:latest image --severity HIGH,CRITICAL --exit-code 0 $CART_IMAGE:$IMAGE_TAG
+                    docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:latest image --severity HIGH,CRITICAL --exit-code 0 $SEARCH_IMAGE:$IMAGE_TAG
                 '''
             }
         }
@@ -31,13 +90,26 @@ pipeline {
         stage('Push Docker Images') {
             steps {
                 echo 'Pushing Docker images to DockerHub...'
-                sh '''
-                    docker push $DOCKERHUB_USER/cloudnova-store-ui:latest
-                    docker push $DOCKERHUB_USER/cloudnova-products-api:latest
-                    docker push $DOCKERHUB_USER/cloudnova-users-api:latest
-                    docker push $DOCKERHUB_USER/cloudnova-cart-api:latest
-                    docker push $DOCKERHUB_USER/cloudnova-search-api:latest
-                '''
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    sh '''
+                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+
+                        docker push $STORE_UI_IMAGE:$IMAGE_TAG
+                        docker push $STORE_UI_IMAGE:latest
+
+                        docker push $PRODUCTS_IMAGE:$IMAGE_TAG
+                        docker push $PRODUCTS_IMAGE:latest
+
+                        docker push $USERS_IMAGE:$IMAGE_TAG
+                        docker push $USERS_IMAGE:latest
+
+                        docker push $CART_IMAGE:$IMAGE_TAG
+                        docker push $CART_IMAGE:latest
+
+                        docker push $SEARCH_IMAGE:$IMAGE_TAG
+                        docker push $SEARCH_IMAGE:latest
+                    '''
+                }
             }
         }
 
@@ -66,11 +138,11 @@ pipeline {
             steps {
                 echo 'Verifying Kubernetes deployment...'
                 sh '''
-                    $KUBECTL rollout status deployment/products-service -n $K8S_NAMESPACE
-                    $KUBECTL rollout status deployment/users-service -n $K8S_NAMESPACE
-                    $KUBECTL rollout status deployment/cart-service -n $K8S_NAMESPACE
-                    $KUBECTL rollout status deployment/search-service -n $K8S_NAMESPACE
-                    $KUBECTL rollout status deployment/store-ui -n $K8S_NAMESPACE
+                    $KUBECTL rollout status deployment/products-service -n $K8S_NAMESPACE --timeout=180s
+                    $KUBECTL rollout status deployment/users-service -n $K8S_NAMESPACE --timeout=180s
+                    $KUBECTL rollout status deployment/cart-service -n $K8S_NAMESPACE --timeout=180s
+                    $KUBECTL rollout status deployment/search-service -n $K8S_NAMESPACE --timeout=180s
+                    $KUBECTL rollout status deployment/store-ui -n $K8S_NAMESPACE --timeout=180s
 
                     $KUBECTL get pods -n $K8S_NAMESPACE
                     $KUBECTL get svc -n $K8S_NAMESPACE
@@ -88,3 +160,4 @@ pipeline {
         }
     }
 }
+z
