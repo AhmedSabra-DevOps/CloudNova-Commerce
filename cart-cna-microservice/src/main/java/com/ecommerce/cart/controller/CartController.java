@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.core.ReactiveValueOperations;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -49,6 +50,13 @@ public class CartController {
     @GetMapping("/cart/{customerId}")
     public Mono<Cart> findById(@PathVariable String customerId) {
         return cartOps.get(customerId);
+    }
+
+
+    @DeleteMapping("/cart/{customerId}")
+    public Mono<Long> clearCart(@PathVariable String customerId) {
+        LOG.info("Clearing cart for customer: {}", customerId);
+        return redisTemplate.delete(customerId);
     }
 
     @PostMapping("/cart")

@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom";
-import { getCart } from "../../api/cart"; // 👈 شيلنا clearCart من هنا عشان م تضربش
+import { getCart, clearCart } from "../../api/cart";
 import Paper from '@mui/material/Paper';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
@@ -26,10 +26,16 @@ const Cart = () => {
     const handleAdd = () => setQuantity(textQuantity + 1);
     const handleMinus = () => setQuantity(textQuantity - 1);
 
-    // تصفير السلة في الـ Frontend مباشرة لحين كرتها في الـ API
-    const handleCheckout = () => {
-        setCart({ items: [], total: 0 });
-        alert("Order placed successfully! Cart cleared. 🎉");
+    const handleCheckout = async () => {
+        try {
+            await clearCart();
+            setCart({ items: [], total: 0 });
+            window.dispatchEvent(new Event("cartUpdated"));
+            alert("Order placed successfully! Cart cleared. 🎉");
+        } catch (error) {
+            console.error(error);
+            alert("Checkout failed. Please try again.");
+        }
     };
 
     // run on load

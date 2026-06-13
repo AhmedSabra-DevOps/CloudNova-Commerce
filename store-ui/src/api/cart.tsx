@@ -1,14 +1,15 @@
 import axiosClient, { cartUrl } from "./config"
 
+const CUSTOMER_ID = "john@example.com";
+
 const addToCart = async (item: any) => {
     try {
-        // جيب الـ cart الحالي الأول
         const currentCart = await getCart();
         const existingItems = currentCart?.items || [];
         
-        // شوف لو المنتج موجود زود الكمية
         const existingItem = existingItems.find((i: any) => i.sku === item?.sku);
         let newItems;
+
         if (existingItem) {
             newItems = existingItems.map((i: any) => 
                 i.sku === item?.sku 
@@ -27,9 +28,11 @@ const addToCart = async (item: any) => {
         }
 
         const response = await axiosClient.post(cartUrl + 'cart', {
-            customerId: "john@example.com",
+            customerId: CUSTOMER_ID,
             items: newItems
         });
+
+        window.dispatchEvent(new Event("cartUpdated"));
         return response.data;
     } catch (err: any) {
         console.log(err);
@@ -38,10 +41,22 @@ const addToCart = async (item: any) => {
 
 export const getCart = async () => {
     try {
-        const response = await axiosClient.get(cartUrl + 'cart' + '/john@example.com')
-        return response.data
+        const response = await axiosClient.get(cartUrl + 'cart/' + CUSTOMER_ID);
+        return response.data;
     } catch (err: any) {
-        console.log(err)
+        console.log(err);
+        return { items: [], total: 0 };
+    }
+}
+
+export const clearCart = async () => {
+    try {
+        const response = await axiosClient.delete(cartUrl + 'cart/' + CUSTOMER_ID);
+        window.dispatchEvent(new Event("cartUpdated"));
+        return response.data;
+    } catch (err: any) {
+        console.log(err);
+        throw err;
     }
 }
 
