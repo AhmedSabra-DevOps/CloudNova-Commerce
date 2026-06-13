@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         HOST_WORKSPACE = '/home/u1/jenkins_home/workspace/cloudnova-commerce-pipeline'
-        DOCKERHUB_USER = 'AhmedSabra'
+        DOCKERHUB_USER = 'ahmedsabra'
 
         STORE_UI_IMAGE = "${DOCKERHUB_USER}/cloudnova-store-ui"
         PRODUCTS_IMAGE = "${DOCKERHUB_USER}/cloudnova-products-service"
