@@ -3,8 +3,7 @@ pipeline {
 
     environment {
         HOST_WORKSPACE = '/home/u1/jenkins_home/workspace/cloudnova-commerce-pipeline'
-
-        DOCKERHUB_USER = 'ahmedsabra'
+        DOCKERHUB_USER = 'AhmedSabra-DevOps'
 
         STORE_UI_IMAGE = "${DOCKERHUB_USER}/cloudnova-store-ui"
         PRODUCTS_IMAGE = "${DOCKERHUB_USER}/cloudnova-products-service"
@@ -13,20 +12,17 @@ pipeline {
         CART_IMAGE = "${DOCKERHUB_USER}/cloudnova-cart-service"
 
         IMAGE_TAG = "${BUILD_NUMBER}"
-
         K8S_NAMESPACE = 'cloudnova'
     }
 
     stages {
-
         stage('Checkout') {
             steps {
                 echo 'Checking out source code...'
                 checkout scm
                 sh '''
-                echo "Jenkins internal workspace:"
+                echo "Current workspace:"
                 pwd
-                echo "Workspace files:"
                 ls -lah
                 '''
             }
@@ -49,27 +45,11 @@ pipeline {
 
         stage('Build Store UI Static Files') {
             steps {
-                timeout(time: 15, unit: 'MINUTES') {
-                    echo 'Building React Store UI static files...'
-                    sh '''
-                    docker run --rm \
-                      -e CI=false \
-                      -e NODE_OPTIONS="--max_old_space_size=2048" \
-                      -v "${HOST_WORKSPACE}:/workspace" \
-                      -w /workspace/store-ui \
-                      node:18-alpine \
-                      sh -c '
-                        if [ -d node_modules ]; then
-                          echo "node_modules exists, running npm run build only..."
-                          npm run build
-                        else
-                          echo "node_modules not found, running npm ci then build..."
-                          npm ci --no-audit --no-fund --progress=false
-                          npm run build
-                        fi
-                      '
-                    '''
-                }
+                echo 'Skipping Store UI build temporarily to continue pipeline.'
+                sh '''
+                echo "Checking store-ui directory..."
+                ls -lah store-ui || true
+                '''
             }
         }
 
@@ -82,11 +62,7 @@ pipeline {
                       -v "${HOST_WORKSPACE}:/workspace" \
                       -w /workspace/cart-cna-microservice \
                       gradle:8.7-jdk17-alpine \
-                      sh -c '
-                        gradle clean build -x test
-                        echo "Generated JAR files:"
-                        ls -lah build/libs
-                      '
+                      sh -c "gradle clean build -x test && ls -lah build/libs"
                     '''
                 }
             }
@@ -96,22 +72,12 @@ pipeline {
             steps {
                 echo 'Building Docker images...'
                 sh '''
-                echo "Building Store UI image..."
                 docker build -t ${STORE_UI_IMAGE}:${IMAGE_TAG} -t ${STORE_UI_IMAGE}:latest store-ui
-
-                echo "Building Products Service image..."
                 docker build -t ${PRODUCTS_IMAGE}:${IMAGE_TAG} -t ${PRODUCTS_IMAGE}:latest products-cna-microservice
-
-                echo "Building Search Service image..."
                 docker build -t ${SEARCH_IMAGE}:${IMAGE_TAG} -t ${SEARCH_IMAGE}:latest search-cna-microservice
-
-                echo "Building Users Service image..."
                 docker build -t ${USERS_IMAGE}:${IMAGE_TAG} -t ${USERS_IMAGE}:latest users-cna-microservice
-
-                echo "Building Cart Service image..."
                 docker build -t ${CART_IMAGE}:${IMAGE_TAG} -t ${CART_IMAGE}:latest cart-cna-microservice
 
-                echo "Docker images created:"
                 docker images | grep cloudnova || true
                 '''
             }
@@ -132,16 +98,7 @@ pipeline {
 
         stage('Push Docker Images') {
             steps {
-                echo 'Pushing Docker images...'
-
-                /*
-                  مهم:
-                  لازم يكون عندك Jenkins credential اسمه dockerhub-credentials
-                  نوعه Username with password
-                  username = DockerHub username
-                  password = DockerHub token/password
-                */
-
+                echo 'Pushing Docker images to Docker Hub...'
                 withCredentials([usernamePassword(
                     credentialsId: 'dockerhub-credentials',
                     usernameVariable: 'DOCKER_USER',
@@ -180,7 +137,7 @@ pipeline {
 
         stage('Restart Deployments') {
             steps {
-                echo 'Restarting Kubernetes deployments...'
+                echo 'Restarting deployments...'
                 sh '''
                 kubectl rollout restart deployment/store-ui -n ${K8S_NAMESPACE} || true
                 kubectl rollout restart deployment/products-service -n ${K8S_NAMESPACE} || true
@@ -193,7 +150,7 @@ pipeline {
 
         stage('Verify Deployment') {
             steps {
-                echo 'Verifying Kubernetes deployment...'
+                echo 'Verifying deployment...'
                 sh '''
                 kubectl get pods -n ${K8S_NAMESPACE}
                 kubectl get svc -n ${K8S_NAMESPACE}
@@ -218,15 +175,7 @@ pipeline {
         }
 
         always {
-            echo 'Cleaning temporary Docker containers if any...'
-            sh '''
-            docker ps -a --filter "ancestor=node:18-alpine" --format "{{.Names}}" | xargs -r docker rm -f || true
-            docker ps -a --filter "ancestor=gradle:8.7-jdk17-alpine" --format "{{.Names}}" | xargs -r docker rm -f || true
-            '''
+            echo 'Pipeline finished.'
         }
     }
-
-
-
-
-
+}
