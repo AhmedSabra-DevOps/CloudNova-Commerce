@@ -44,14 +44,21 @@ pipeline {
         }
 
         stage('Build Store UI Static Files') {
-            steps {
-                echo 'Skipping Store UI build temporarily to continue pipeline.'
-                sh '''
-                echo "Checking store-ui directory..."
-                ls -lah store-ui || true
-                '''
-            }
+    steps {
+        timeout(time: 10, unit: 'MINUTES') {
+            echo 'Building Store UI using existing node_modules...'
+            sh '''
+            docker run --rm \
+              -e CI=false \
+              -e NODE_OPTIONS="--max_old_space_size=2048" \
+              -v "${HOST_WORKSPACE}:/workspace" \
+              -w /workspace/store-ui \
+              node:18-alpine \
+              sh -c "npm run build && ls -lah build"
+            '''
         }
+    }
+}
 
         stage('Build Cart Service JAR') {
             steps {
