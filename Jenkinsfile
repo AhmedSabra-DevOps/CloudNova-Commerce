@@ -1,7 +1,6 @@
 pipeline {
 agent any
 
-```
 environment {
     DOCKERHUB_USER = 'ahmedsabra'
     K8S_NAMESPACE = 'cloudnova'
@@ -171,6 +170,5 @@ post {
         echo 'CloudNova Commerce CI/CD Pipeline failed. Please check the console output.'
     }
 }
-```
 
 }
