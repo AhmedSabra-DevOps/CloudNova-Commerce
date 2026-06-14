@@ -137,7 +137,7 @@ pipeline {
             steps {
                 echo 'Deploying to Kubernetes...'
                 sh '''
-                kubectl apply -f kubernetes/ -n ${K8S_NAMESPACE}
+                docker run --rm --network host -e KUBECONFIG=/root/.kube/config -v /home/u1/jenkins_home/.kube:/root/.kube -v /home/u1/jenkins_home/.minikube:/root/.minikube -v /home/u1/jenkins_home/workspace/cloudnova-commerce-pipeline:/workspace -w /workspace bitnami/kubectl:latest apply -f kubernetes/ -n ${K8S_NAMESPACE}
                 '''
             }
         }
@@ -146,11 +146,11 @@ pipeline {
             steps {
                 echo 'Restarting deployments...'
                 sh '''
-                kubectl rollout restart deployment/store-ui -n ${K8S_NAMESPACE} || true
-                kubectl rollout restart deployment/products-service -n ${K8S_NAMESPACE} || true
-                kubectl rollout restart deployment/search-service -n ${K8S_NAMESPACE} || true
-                kubectl rollout restart deployment/users-service -n ${K8S_NAMESPACE} || true
-                kubectl rollout restart deployment/cart-service -n ${K8S_NAMESPACE} || true
+                docker run --rm --network host -e KUBECONFIG=/root/.kube/config -v /home/u1/jenkins_home/.kube:/root/.kube -v /home/u1/jenkins_home/.minikube:/root/.minikube -v /home/u1/jenkins_home/workspace/cloudnova-commerce-pipeline:/workspace -w /workspace bitnami/kubectl:latest rollout restart deployment/store-ui -n ${K8S_NAMESPACE} || true
+                docker run --rm --network host -e KUBECONFIG=/root/.kube/config -v /home/u1/jenkins_home/.kube:/root/.kube -v /home/u1/jenkins_home/.minikube:/root/.minikube -v /home/u1/jenkins_home/workspace/cloudnova-commerce-pipeline:/workspace -w /workspace bitnami/kubectl:latest rollout restart deployment/products-service -n ${K8S_NAMESPACE} || true
+                docker run --rm --network host -e KUBECONFIG=/root/.kube/config -v /home/u1/jenkins_home/.kube:/root/.kube -v /home/u1/jenkins_home/.minikube:/root/.minikube -v /home/u1/jenkins_home/workspace/cloudnova-commerce-pipeline:/workspace -w /workspace bitnami/kubectl:latest rollout restart deployment/search-service -n ${K8S_NAMESPACE} || true
+                docker run --rm --network host -e KUBECONFIG=/root/.kube/config -v /home/u1/jenkins_home/.kube:/root/.kube -v /home/u1/jenkins_home/.minikube:/root/.minikube -v /home/u1/jenkins_home/workspace/cloudnova-commerce-pipeline:/workspace -w /workspace bitnami/kubectl:latest rollout restart deployment/users-service -n ${K8S_NAMESPACE} || true
+                docker run --rm --network host -e KUBECONFIG=/root/.kube/config -v /home/u1/jenkins_home/.kube:/root/.kube -v /home/u1/jenkins_home/.minikube:/root/.minikube -v /home/u1/jenkins_home/workspace/cloudnova-commerce-pipeline:/workspace -w /workspace bitnami/kubectl:latest rollout restart deployment/cart-service -n ${K8S_NAMESPACE} || true
                 '''
             }
         }
@@ -159,14 +159,14 @@ pipeline {
             steps {
                 echo 'Verifying deployment...'
                 sh '''
-                kubectl get pods -n ${K8S_NAMESPACE}
-                kubectl get svc -n ${K8S_NAMESPACE}
+                docker run --rm --network host -e KUBECONFIG=/root/.kube/config -v /home/u1/jenkins_home/.kube:/root/.kube -v /home/u1/jenkins_home/.minikube:/root/.minikube -v /home/u1/jenkins_home/workspace/cloudnova-commerce-pipeline:/workspace -w /workspace bitnami/kubectl:latest get pods -n ${K8S_NAMESPACE}
+                docker run --rm --network host -e KUBECONFIG=/root/.kube/config -v /home/u1/jenkins_home/.kube:/root/.kube -v /home/u1/jenkins_home/.minikube:/root/.minikube -v /home/u1/jenkins_home/workspace/cloudnova-commerce-pipeline:/workspace -w /workspace bitnami/kubectl:latest get svc -n ${K8S_NAMESPACE}
 
-                kubectl rollout status deployment/store-ui -n ${K8S_NAMESPACE} --timeout=120s || true
-                kubectl rollout status deployment/products-service -n ${K8S_NAMESPACE} --timeout=120s || true
-                kubectl rollout status deployment/search-service -n ${K8S_NAMESPACE} --timeout=120s || true
-                kubectl rollout status deployment/users-service -n ${K8S_NAMESPACE} --timeout=120s || true
-                kubectl rollout status deployment/cart-service -n ${K8S_NAMESPACE} --timeout=120s || true
+                docker run --rm --network host -e KUBECONFIG=/root/.kube/config -v /home/u1/jenkins_home/.kube:/root/.kube -v /home/u1/jenkins_home/.minikube:/root/.minikube -v /home/u1/jenkins_home/workspace/cloudnova-commerce-pipeline:/workspace -w /workspace bitnami/kubectl:latest rollout status deployment/store-ui -n ${K8S_NAMESPACE} --timeout=120s || true
+                docker run --rm --network host -e KUBECONFIG=/root/.kube/config -v /home/u1/jenkins_home/.kube:/root/.kube -v /home/u1/jenkins_home/.minikube:/root/.minikube -v /home/u1/jenkins_home/workspace/cloudnova-commerce-pipeline:/workspace -w /workspace bitnami/kubectl:latest rollout status deployment/products-service -n ${K8S_NAMESPACE} --timeout=120s || true
+                docker run --rm --network host -e KUBECONFIG=/root/.kube/config -v /home/u1/jenkins_home/.kube:/root/.kube -v /home/u1/jenkins_home/.minikube:/root/.minikube -v /home/u1/jenkins_home/workspace/cloudnova-commerce-pipeline:/workspace -w /workspace bitnami/kubectl:latest rollout status deployment/search-service -n ${K8S_NAMESPACE} --timeout=120s || true
+                docker run --rm --network host -e KUBECONFIG=/root/.kube/config -v /home/u1/jenkins_home/.kube:/root/.kube -v /home/u1/jenkins_home/.minikube:/root/.minikube -v /home/u1/jenkins_home/workspace/cloudnova-commerce-pipeline:/workspace -w /workspace bitnami/kubectl:latest rollout status deployment/users-service -n ${K8S_NAMESPACE} --timeout=120s || true
+                docker run --rm --network host -e KUBECONFIG=/root/.kube/config -v /home/u1/jenkins_home/.kube:/root/.kube -v /home/u1/jenkins_home/.minikube:/root/.minikube -v /home/u1/jenkins_home/workspace/cloudnova-commerce-pipeline:/workspace -w /workspace bitnami/kubectl:latest rollout status deployment/cart-service -n ${K8S_NAMESPACE} --timeout=120s || true
                 '''
             }
         }
