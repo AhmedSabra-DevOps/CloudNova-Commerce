@@ -65,11 +65,12 @@ pipeline {
                 timeout(time: 10, unit: 'MINUTES') {
                     echo 'Building Cart Service JAR...'
                     sh '''
-                    docker run --rm \
+                    docker run --rm --network host \
                       -v "${HOST_WORKSPACE}:/workspace" \
+                      -v /home/u1/.gradle-cache-cloudnova:/home/gradle/.gradle \
                       -w /workspace/cart-cna-microservice \
                       gradle:8.7-jdk17-alpine \
-                      sh -c "gradle clean build -x test && ls -lah build/libs"
+                      sh -c "gradle clean build -x test --no-daemon && ls -lah build/libs"
                     '''
                 }
             }
