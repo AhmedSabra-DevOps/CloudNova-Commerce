@@ -54,7 +54,7 @@ pipeline {
               -v "${HOST_WORKSPACE}:/workspace" \
               -w /workspace/store-ui \
               node:18-alpine \
-              sh -c "npm run build && ls -lah build"
+              sh -c "npm install && npm run build && ls -lah build"
             '''
         }
     }
