@@ -1,0 +1,71 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: search-indexer
+  namespace: cloudnova
+spec:
+  schedule: "*/5 * * * *"
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: search-indexer
+              image: python:3.11-alpine
+              command:
+                - sh
+                - -c
+                - |
+                  pip install requests
+                  python - <<'PY'
+                  import requests
+                  import time
+
+                  PRODUCTS_URL = "http://products-api:5000/products"
+                  ES_INDEX_URL = "http://search-engine:9200/search"
+                  ES_DOC_URL = "http://search-engine:9200/search/_doc"
+
+                  def wait_for(url, name, retries=30):
+                      for i in range(retries):
+                          try:
+                              r = requests.get(url, timeout=5)
+                              if r.status_code < 500:
+                                  print(f"{name} is ready")
+                                  return True
+                          except Exception as e:
+                              print(f"Waiting for {name}: {e}")
+                          time.sleep(5)
+                      raise Exception(f"{name} is not ready")
+
+                  wait_for("http://search-engine:9200", "Elasticsearch")
+                  wait_for(PRODUCTS_URL, "Products API")
+
+                  products = requests.get(PRODUCTS_URL, timeout=20).json()
+
+                  if isinstance(products, dict):
+                      products = products.get("products") or products.get("data") or []
+
+                  print(f"Products found: {len(products)}")
+
+                  requests.delete(ES_INDEX_URL, timeout=10)
+                  requests.put(ES_INDEX_URL, timeout=10)
+
+                  for p in products:
+                      product_id = p.get("_id") or p.get("id") or p.get("productId") or p.get("name")
+                      doc = {
+                          "name": p.get("name", ""),
+                          "title": p.get("title", ""),
+                          "description": p.get("description", ""),
+                          "category": p.get("category", ""),
+                          "price": p.get("price", 0),
+                          "image": p.get("image", "")
+                      }
+
+                      r = requests.post(f"{ES_DOC_URL}/{product_id}", json=doc, timeout=10)
+                      print(product_id, r.status_code)
+
+                  print("Search indexing completed successfully.")
+                  PY
