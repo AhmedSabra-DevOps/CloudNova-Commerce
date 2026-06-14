@@ -131,6 +131,37 @@ pipeline {
             }
         }
 
+
+        stage('Kubernetes Security Validation') {
+            steps {
+                echo 'Running Kubernetes manifest security validation...'
+                sh '''                    echo "Checking for risky Kubernetes configurations..."
+
+                    if grep -R "privileged: true" kubernetes/; then
+                      echo "ERROR: privileged containers found"
+                      exit 1
+                    fi
+
+                    if grep -R "hostNetwork: true" kubernetes/; then
+                      echo "ERROR: hostNetwork usage found"
+                      exit 1
+                    fi
+
+                    if grep -R "hostPID: true" kubernetes/; then
+                      echo "ERROR: hostPID usage found"
+                      exit 1
+                    fi
+
+                    if grep -R "hostIPC: true" kubernetes/; then
+                      echo "ERROR: hostIPC usage found"
+                      exit 1
+                    fi
+
+                    echo "Basic Kubernetes security validation passed."
+                '''
+            }
+        }
+
         stage('Deploy to Kubernetes') {
             steps {
                 echo 'Deploying to Kubernetes...'
