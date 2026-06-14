@@ -62,7 +62,7 @@ pipeline {
 
         stage('Build Cart Service JAR') {
             steps {
-                timeout(time: 10, unit: 'MINUTES') {
+                timeout(time: 20, unit: 'MINUTES') {
                     echo 'Building Cart Service JAR...'
                     sh '''
                     docker run --rm --network host \
