@@ -1,0 +1,4 @@
+aws_region      = "us-east-1"
+instance_type   = "t2.small"
+my_ip_cidr      = "YOUR_PUBLIC_IP/32"
+public_key_path = "~/.ssh/cloudnova-demo-key.pub"
