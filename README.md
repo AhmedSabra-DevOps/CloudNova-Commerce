@@ -24,10 +24,10 @@ The project shows how a real e-commerce application can be built, containerized,
 
 ## Team Members
 
-| Name                            | ID             | Main Role                             |
-| ------------------------------- | -------------- | ------------------------------------- |
-| Ebrahim Ashraf Ebrahim Metwally | 29603191201014 | Software Development / Implementation |
-| Ahmed Abdo Metwally Sabra       | 29903101502499 | DevOps / Cloud Deployment / CI/CD     |
+| Name                            | Main Role                             |
+| ------------------------------- | ------------------------------------- |
+| Ebrahim Ashraf Ebrahim Metwally | Software Development / Implementation |
+| Ahmed Abdo Metwally Sabra       | DevOps / Cloud Deployment / CI/CD     |
 
 ---
 
